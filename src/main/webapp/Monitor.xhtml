@@ -1,0 +1,575 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+	  xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:c="http://java.sun.com/jsp/jstl/core"> 
+
+<h:head>
+	<title>PrimeFaces_Spring_P2</title>
+	<link rel="stylesheet" type="text/css" href="https://gswas.com.mx/cas/css/gstheme.css"/>
+	<link type="image/x-icon"
+		href="http://intranet.gseguros.com.mx/favicon.ico" rel="icon" />
+	
+	<f:facet name="first">
+        <meta http-equiv="X-UA-Compatible" content="edge, chrome=1" />
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="-1" />
+    </f:facet>
+	
+		
+</h:head>  
+<body> 
+	<style type="text/css">
+		    .ui-row-editor .ui-row-editor-pencil {
+		        margin-left:8px;
+		    } 
+	    
+		    #load_msg
+		    {
+	   			display:none !important;
+	   			height: 0px;
+	   			z-index: 2;
+	   			top: 0em;
+			}
+			
+			 
+			.ui-growl {
+				z-index: 999999 !important;
+			}
+	</style>
+<center>
+    <h:form id="form" style="width:auto;">	       
+        <p:growl id="msgs" showDetail="true"/>       
+	            <br/> 
+        <p:toolbar >
+			   <f:facet name="left"> 
+					<h3 style="margin-top:0;margin-left: 40px;"> Monitor Respaldo A DB</h3>
+		        </f:facet> 
+		        <f:facet name="right">
+			        <p:panelGrid columns="7"> 
+						
+						  <p:selectOneMenu id="operCombo" value="#{bitaSW.numOper}"
+						                   rendered="#{bitaSW.isDetalle}" style="width:125px">
+					            <f:selectItem itemLabel="Operación" itemValue="0" />
+					             <f:selectItems value="#{bitaSW.ltop}" var="lop" 
+					             				itemLabel="#{lop.descripcion}" itemValue="#{lop.id_operacion}" />
+					        </p:selectOneMenu>
+										 
+						<h:outputText value="Inicio:" rendered="#{bitaSW.isFechaIF}"/>			 
+										
+							 <p:calendar id="fechIn" value="#{bitaSW.fechaT}" size="7"
+										pattern="dd/MM/yyyy" navigator="true" rendered="#{bitaSW.isTotal}"
+										placeholder="Fecha inicio" required="false" style="width:82px" />
+							
+							<p:calendar id="fechInDetalles" value="#{bitaSW.fechaTDetalles}" size="7"
+										pattern="dd/MM/yyyy" navigator="true" rendered="#{bitaSW.isDetalle}"
+										placeholder="Fecha inicio" required="false" style="width:82px" />			
+										
+						
+						<h:outputText value="Fin:"  rendered="#{bitaSW.isFechaIF}" />			 
+										
+							 <p:calendar id="fechFin" value="#{bitaSW.fechaF}" size="7" 
+										pattern="dd/MM/yyyy" navigator="true" rendered="#{bitaSW.isTotal}"
+										placeholder="Fecha final" required="false" style="width:82px" />
+							
+							 <p:calendar id="fechFinDetalles" value="#{bitaSW.fechaFDetalles}" size="7"
+										pattern="dd/MM/yyyy" navigator="true" rendered="#{bitaSW.isDetalle}"
+										placeholder="Fecha final" required="false" style="width:82px" />			 
+						
+											 
+						 <p:commandButton value="Buscar"  action="#{bitaSW.getBusquedaTotal}"
+						 				 id="btnBuscaDetalle" title="Buscar por tipo de operacion"
+						 				 rendered="#{bitaSW.isDetalle}"  
+			                             update=":form:tabTotales :form:tabMalos :form:tabSoc :form:msgs :form"
+			                             onclick="PF('load_msg').show();" 
+			                             oncomplete="PF('tablaSoc').clearFilters();PF('load_msg').hide();" />  
+			             
+			              <p:commandButton value="Buscar"   action="#{bitaSW.muestraTotales}"
+						 				 id="btnBuscaTotal" title="Buscar en total por fecha"
+						 				 rendered="#{bitaSW.isTotal}"
+			                             update=":form:tabTotales :form:tabMalos :form:tabSoc :form:msgs :form"
+			                             onclick="PF('load_msg').show();" 
+			                             oncomplete="PF('tablaTotales').clearFilters();PF('load_msg').hide();" />
+			                             
+			              <p:commandButton value="Inicio"   action="#{bitaSW.regresaTotales}"
+						 				 id="btnRegresaTotal" title="Regresar a busqueda principal"
+						 				 rendered="#{bitaSW.isBtnReturn}"
+			                             update="form:tabTotales form:tabMalos form:tabSoc :form:msgs :form"
+			                             onclick="PF('load_msg').show();" oncomplete="PF('load_msg').hide();" />                              
+			            
+	  
+					 </p:panelGrid>
+ 
+		        </f:facet> 
+		    </p:toolbar>            
+            
+      		<p:separator  />  
+      		
+      		
+<!-- Tabla Totales   -->
+            <p:dataTable var="tot" value="#{bitaSW.lTotales}"  widgetVar="tablaTotales" 
+             			emptyMessage="No se han encontrado resultados"
+		                tableStyle="width:90%" editable="true" rendered="#{bitaSW.isTotal}"
+					    style="margin-bottom:20px" id="tabTotales" paginatorPosition="top"
+					    filteredValue="#{bitaSW.lTotalesFiltro}"
+		                reflow="true" rows="13" paginator="true" >
+	 
+				<p:column headerText="Movimientos Recibidos">
+					<h:outputText value="#{tot.movTotal}" />  
+				</p:column> 	
+				
+				<p:column headerText="Fecha" sortBy="#{tot.fecha}">
+					<h:outputText value="#{tot.fecha}" />  
+				</p:column>	   
+				 
+	<!-- Boton es Detalle -->
+				<p:column headerText="" width="15" exportable="false">
+					<p:commandButton icon="ui-icon-plus" title="Mostar Detalle Contabilizado" 
+							rendered="#{tot.isDetalles}"
+							actionListener="#{bitaSW.muestraDetalles(tot)}" 
+							update=":form:tabTotales :form:tabMalos :form:tabSoc @form:msgs @form"
+							style=" width:15px; height:15px" onclick="PF('load_msg').show();" 
+							oncomplete="PF('tablaSoc').clearFilters();PF('load_msg').hide();" />
+				</p:column>
+				
+				<p:column headerText="Movimientos Correctos">
+					<h:outputText value="#{tot.movOk}" />  
+				</p:column> 
+				
+	<!-- Boton es Malos -->
+				<p:column headerText="" width="15" exportable="false">
+					<p:commandButton icon="ui-icon-plus" title="Mostar Detalle NO Contabilizado " 
+							rendered="#{tot.isMalos}"
+							actionListener="#{bitaSW.muestraMalos(tot)}" 
+							update=":form:tabTotales :form:tabMalos :form:tabMalos @form:msgs @form"
+							style=" width:15px; height:15px" onclick="PF('load_msg').show();" 
+							oncomplete="PF('tablaMalos').clearFilters();PF('load_msg').hide();" />
+				</p:column>
+				
+				<p:column headerText="Movimientos Incorrectos">
+					<h:outputText value="#{tot.monNoOk}" />  
+				</p:column>
+				 
+				<p:column headerText="Estatus Contable"  sortBy="#{tot.estatus}">
+					<h:outputText value="#{tot.estatus}" />  
+				</p:column> 
+				
+				<f:facet name="footer">		
+					<div style="float:right;padding-top: 5px;">
+					 	  
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/excel.png"  width="25px" />
+			                    <p:dataExporter type="xls" target="tabTotales" fileName="PrimeFaces_Spring_P2_Totales" />
+			              </h:commandLink> 
+			              
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			               
+			               <h:graphicImage value="img/separ.png"  width="25px" />
+			               
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/csv.png"  width="25px" />
+			                    <p:dataExporter type="csv" target="tabTotales" fileName="PrimeFaces_Spring_P2_Totales" />
+			              </h:commandLink>
+			              
+		             </div>
+		          </f:facet>  
+			 
+		</p:dataTable>  		
+      		
+      
+ 
+  <!-- Tabla MALOS   -->
+            <p:dataTable var="mal" value="#{bitaSW.lMalos}"  widgetVar="tablaMalos" emptyMessage="No se han encontrado resultados"
+		              tableStyle="width:auto" editable="true" rendered="#{bitaSW.isMalos}"
+					  style="margin-bottom:20px" id="tabMalos" paginatorPosition="top"
+					  filteredValue="#{bitaSW.lMalosFiltro}"
+		              reflow="true" rows="13" paginator="true" >
+		              
+	            <p:column headerText="Operación">
+					<h:outputText value="#{mal.nomOpera}" />  
+				</p:column>  
+				
+				<p:column headerText="Compañia">
+					<h:outputText value="#{mal.compania}" />  
+				</p:column>  
+				
+				<p:column headerText="Año">
+					<h:outputText value="#{mal.ano}" />  
+				</p:column> 
+				
+				<p:column headerText="Mes">
+					<h:outputText value="#{mal.mes}" />  
+				</p:column> 
+				
+				<p:column headerText="Cargos">
+					<h:outputText value="#{mal.cargo}" />  
+				</p:column>
+				
+				
+				
+				<p:column headerText="Sucursal" >
+					<h:outputText value="#{mal.numSucursal}" />  
+				</p:column>
+				
+				<p:column headerText="Ramo" >
+					<h:outputText value="#{mal.numRamo}" />  
+				</p:column>
+				
+				
+				
+				<p:column headerText="Poliza" >
+					<h:outputText value="#{mal.numpoliza}" />  
+				</p:column>
+				
+				
+				
+				<p:column headerText="Endoso Tipo" >
+					<h:outputText value="#{mal.tipoEndoso}" />  
+				</p:column>
+				
+				<p:column headerText="Endoso Num." >
+					<h:outputText value="#{mal.numEndoso}" />  
+				</p:column>
+				 
+				<p:column headerText="Tipo">
+					<h:outputText value="#{mal.tipopoliza}" />  
+				</p:column>
+				
+				<p:column headerText="Fecha">
+					<h:outputText value="#{mal.fechapoliza}" />  
+				</p:column>
+				
+				<p:column headerText="Recibo">
+					<h:outputText value="#{mal.numrecibo}" />  
+				</p:column>
+				
+				<p:column headerText="PeriocidadPago">
+					<h:outputText value="#{mal.totalRecibos}" />  
+				</p:column>
+				
+				<p:column headerText="Moneda">
+					<h:outputText value="#{mal.moneda}" />  
+				</p:column>
+				
+				<p:column headerText="Total Prima">
+					<h:outputText value="#{mal.cargo}" />  
+				</p:column>
+				
+				<p:column headerText="Prima Neta">
+					<h:outputText value="#{mal.primaneta}" />  
+				</p:column>
+				
+				<p:column headerText="Recargos" >
+					<h:outputText value="#{mal.recargos}" />  
+				</p:column>
+				
+				<p:column headerText="Derechos" >
+					<h:outputText value="#{mal.derechos}" />  
+				</p:column>
+				
+				<p:column headerText="compf" >
+					<h:outputText value="#{mal.compf}" />  
+				</p:column>
+				
+				<p:column headerText="comxdevpf" >
+					<h:outputText value="#{mal.comxdevpf}" />  
+				</p:column>
+				
+				<p:column headerText="compm" >
+					<h:outputText value="#{mal.compm}" />  
+				</p:column>
+				
+				<p:column headerText="comxdevpm" >
+					<h:outputText value="#{mal.comxdevpm}" />  
+				</p:column>
+				
+				<p:column headerText="Iva" >
+					<h:outputText value="#{mal.iva}" />  
+				</p:column>
+				
+				<p:column headerText="Mensaje" >
+					<h:outputText value="#{mal.mensaje}" />  
+				</p:column>    
+				
+				<f:facet name="footer">		
+					<div style="float:right;padding-top: 5px;">
+					 	  
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/excel.png"  width="25px" />
+			                    <p:dataExporter type="xls" target="tabMalos" fileName="PrimeFaces_Spring_P2_NoContabilizados" />
+			              </h:commandLink> 
+			              
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			               
+			               <h:graphicImage value="img/separ.png"  width="25px" />
+			               
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/csv.png"  width="25px" />
+			                    <p:dataExporter type="csv" target="tabMalos" fileName="PrimeFaces_Spring_P2_NoContabilizados" />
+			              </h:commandLink>
+			              
+		             </div>
+		          </f:facet>  
+			 
+		</p:dataTable>
+       		
+      		
+      		
+
+<!-- Tabla DETALLE   -->
+            <p:dataTable var="soc" value="#{bitaSW.lTotalBit}"  widgetVar="tablaSoc" emptyMessage="No se han encontrado resultados"
+		              tableStyle="width:100%" editable="true" rendered="#{bitaSW.isDetalle}"
+					  style="margin-bottom:20px" id="tabSoc" paginatorPosition="top"
+		              reflow="true" rows="31" paginator="true" filteredValue="#{bitaSW.lTotalBitFiltro}">
+			      
+		        <p:column style="width:35px" exportable="false"> 
+						 <p:commandButton icon="ui-icon-search" title="Detalle" rendered="#{soc.isMovimientos}"
+						                  style=" width:25px; height:25px" 
+							              actionListener="#{bitaSW.getBusquedaIndv(soc)}" update="@form :form:tabsocDeta :form:detaDlg" 
+							              onclick="PF('load_msg').show();" 
+							              oncomplete="PF('tablasocDeta').clearFilters();PF('detalleDialog').show();PF('load_msg').hide();" />   
+				</p:column>
+				
+				<p:column headerText="Operación">
+					<h:outputText value="#{soc.descripOper}" />  
+				</p:column> 		        
+	        
+			    <p:column headerText="Poliza Contable">
+					<h:outputText value="#{soc.polizaContable}" />  
+				</p:column> 
+				
+				<p:column headerText="Cargos">
+					<h:outputText value="#{soc.cargos}" />  
+				</p:column> 
+				
+				<p:column headerText="Abonos">
+					<h:outputText value="#{soc.abonos}" />  
+				</p:column> 
+				
+				<p:column headerText="Tipo" sortBy="#{soc.tipoDePoliza}">
+					<h:outputText value="#{soc.tipoDePoliza}" />  
+				</p:column>
+				
+				<p:column headerText="Recibo">  
+					<h:outputText value="#{soc.numRecibo}" />  
+				</p:column> 				
+				 
+				<p:column headerText="Año">
+					<h:outputText value="#{soc.anio}" />  
+				</p:column> 
+				
+				<p:column headerText="Mes">
+					<h:outputText value="#{soc.mes}" />  
+				</p:column>  
+
+				<p:column headerText="Fecha">
+					<h:outputText value="#{soc.fechaDelaPoliza}" />  
+				</p:column>  
+				
+				<p:column headerText="Estatus">
+					<h:outputText value="#{soc.estatus}" />  
+				</p:column>
+				
+				<p:column headerText="Movimientos" sortBy="#{soc.movimientos}">  
+					<h:outputText value="#{soc.movimientos}" />  
+				</p:column>   
+				
+				
+				 
+<!-- 				<p:column headerText="Sql Error"> -->
+<!-- 					<h:outputText value="#{soc.vSqlError}" />   -->
+<!-- 				</p:column>    -->
+	
+<!-- 				<p:column headerText="vIsamError"> -->
+<!-- 					<h:outputText value="#{soc.vIsamError}" />   -->
+<!-- 				</p:column> -->
+				
+<!-- 				<p:column headerText="Error Info"> -->
+<!-- 					<h:outputText value="#{soc.vErrorInformacion}" />   -->
+<!-- 				</p:column>   -->
+				
+				<p:columnGroup type="footer">
+		            <p:row>
+		                <p:column colspan="3" style="text-align:right" footerText="Totales: " /> 
+		                <p:column footerText="#{bitaSW.cargoT1}" /> 
+		                <p:column footerText="#{bitaSW.abonoT1}" />
+		                <p:column colspan="7" footerText="" /> 
+		            </p:row>
+		        </p:columnGroup>
+				 
+	  
+				<f:facet name="footer">		
+					<div style="float:right;padding-top: 5px;">
+					 	  
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/excel.png"  width="25px" />
+			                    <p:dataExporter type="xls" target="tabSoc" fileName="PrimeFaces_Spring_P2DBTotal" />
+			              </h:commandLink> 
+			              
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			               
+			               <h:graphicImage value="img/separ.png"  width="25px" />
+			               
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/csv.png"  width="25px" />
+			                    <p:dataExporter type="csv" target="tabSoc" fileName="PrimeFaces_Spring_P2DBTotal" />
+			              </h:commandLink>
+			              
+		             </div>
+		          </f:facet>  
+			 
+		</p:dataTable>  
+		
+		
+		
+	
+<!-- TABLA de mostrar mas detalle -->
+ <p:dialog header="Detalle Poliza Contable #{bitaSW.numPolIndv}" widgetVar="detalleDialog" 
+            modal="false" fitViewport="true" responsive="true"  showEffect="fade" id="detaDlg"
+           hideEffect="fade" resizable="true">
+
+				<p:dataTable var="socDeta" value="#{bitaSW.lBit}"  
+				             widgetVar="tablasocDeta" emptyMessage="No se han encontrado resultados"
+		                     tableStyle="width:auto" editable="false"
+					         style="margin-bottom:20px" id="tabsocDeta" paginatorPosition="top"
+		                     reflow="true" rows="30" 
+		                     paginator="true" filteredValue="#{bitaSW.lBitFiltro}">
+		                     
+		        <p:column headerText="Poliza Contable">
+					<h:outputText value="#{socDeta.polizaContable}" />  
+				</p:column> 
+	        
+			    <p:column headerText="Referencia">
+					<h:outputText value="#{socDeta.numeroDePoliza}" />  
+				</p:column> 
+				
+				<p:column headerText="Cuenta">
+					<h:outputText value="#{socDeta.cuenta}" />  
+				</p:column> 
+				
+				<p:column headerText="Cargo">
+					<h:outputText value="#{socDeta.cargo}" />  
+				</p:column>
+				
+				<p:column headerText="Abono">
+					<h:outputText value="#{socDeta.abono}" />  
+				</p:column>
+				
+				<p:column headerText="Compañia">
+					<h:outputText value="#{socDeta.compania}" />  
+				</p:column>
+				
+				<p:column headerText="Tipo">
+					<h:outputText value="#{socDeta.tipoDePoliza}" />  
+				</p:column> 
+				
+				<p:column headerText="Moneda">
+					<h:outputText value="#{socDeta.moneda}" />  
+				</p:column>  
+				
+				<p:column headerText="Costos">
+					<h:outputText value="#{socDeta.ctroDeCostos}" />  
+				</p:column>
+				
+				<p:column headerText="DesMov">
+					<h:outputText value="#{socDeta.vDesMov}" />  
+				</p:column>  
+				
+<!-- 				<p:column headerText="Movimientos"> -->
+<!-- 					<h:outputText value="#{socDeta.movimientos}" />   -->
+<!-- 				</p:column>  -->
+				<p:column headerText="Recibo">
+					<h:outputText value="#{socDeta.numRecibo}" />  
+				</p:column>  
+				
+				<p:column headerText="Total Recibo">
+					<h:outputText value="#{socDeta.totalRecibo}" />  
+				</p:column>  
+				
+				<p:column headerText="PeriocidadPago">
+					<h:outputText value="#{socDeta.descRecibo}" />  
+				</p:column>  
+				
+				<p:column headerText="Año">
+					<h:outputText value="#{socDeta.anio}" />  
+				</p:column> 
+				
+				<p:column headerText="Mes">
+					<h:outputText value="#{socDeta.mes}" />  
+				</p:column>  
+
+				<p:column headerText="Fecha">
+					<h:outputText value="#{socDeta.fechaDelaPoliza}" />  
+				</p:column>  
+				
+				<p:column headerText="Estatus">
+					<h:outputText value="#{socDeta.estatus}" />  
+				</p:column>  
+				 
+<!-- 				<p:column headerText="Sql Error"> -->
+<!-- 					<h:outputText value="#{socDeta.vSqlError}" />   -->
+<!-- 				</p:column>    -->
+	  
+<!-- 				<p:column headerText="Error Info"> -->
+<!-- 					<h:outputText value="#{socDeta.vErrorInformacion}" />   -->
+<!-- 				</p:column>  -->
+				
+				<p:columnGroup type="footer">
+		            <p:row>
+		                <p:column colspan="3" style="text-align:right" footerText="Totales: " /> 
+		                <p:column footerText="#{bitaSW.cargoT2}" /> 
+		                <p:column footerText="#{bitaSW.abonoT2}" />
+		                <p:column colspan="14" footerText="" /> 
+		            </p:row>
+		        </p:columnGroup> 
+				 
+	  
+				<f:facet name="footer">		
+					<div style="float:right;padding-top: 5px;">
+					 	  
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/excel.png"  width="25px" />
+			                    <p:dataExporter type="xls" target="tabsocDeta" fileName="PrimeFaces_Spring_P2DB#{bitaSW.numPolIndv}" />
+			              </h:commandLink> 
+			              
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			               
+			               <h:graphicImage value="img/separ.png"  width="25px" />
+			               
+			               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+			              <h:commandLink> 
+			                    <h:graphicImage value="img/csv.png"  width="25px" />
+			                    <p:dataExporter type="csv" target="tabsocDeta" fileName="PrimeFaces_Spring_P2DB#{bitaSW.numPolIndv}" />
+			              </h:commandLink>
+			              
+		             </div>
+		          </f:facet>  
+			 
+		</p:dataTable>  
+
+    </p:dialog>
+		 
+ 
+<!-- Dialogo de Carga -->		
+ 		<p:dialog widgetVar="load_msg" id="load_msg" closeOnEscape="false" showHeader="false"
+				modal="true" height="80px" closable="false"  resizable="false" responsive="true"
+				draggable="false" width="110px"  header="Cargando" styleClass="ldClass"  
+				style="opacity: 0.4;height:80px;">
+
+				<img src="img/load2.gif" alt="Cargando"
+					style="width: 80px; " />
+			</p:dialog>		 
+		  
+		  
+    </h:form>
+</center>
+</body>
+</html>
+   

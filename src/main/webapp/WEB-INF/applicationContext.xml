@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<context:annotation-config />
+	<context:component-scan base-package="com.bita" />
+	
+	<bean id="DBSessionFactory"
+        class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="DBDataSource" />     
+        <property name="packagesToScan" value="com/bita/model" />   
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.InformixDialect</prop>
+                <prop key="hibernate.show_sql">false</prop> 
+                <prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop> 
+            </props> 
+        </property>
+    </bean>
+
+    <bean id="DBDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+      <property name="jndiName" value="java:comp/env/jdbc/poolconex1"/> 
+    </bean> 
+    
+    <tx:annotation-driven transaction-manager="DBTxManager" />
+    
+    <bean id="DBTxManager"
+        class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="DBSessionFactory" />
+    </bean>        
+</beans>
