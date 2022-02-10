@@ -11,7 +11,7 @@
 	<properties>
 		<prime.version>5.3</prime.version>  
 		<spring.version>3.2.2.RELEASE</spring.version>
-		<hibernate.version>4.2.2.Final</hibernate.version>
+		<hibernate.version>5.4.24.Final</hibernate.version>
 		<jsf.version>2.1.12</jsf.version> 
 		
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
